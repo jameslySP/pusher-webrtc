@@ -1,28 +1,158 @@
-$(document).ready(function() {
-    var pusher = new Pusher("26bf35143b003081a07b", {
-        cluster: "us2",
-        encrypted: true,
-        authEndpoint: "pusher/auth"
+var pusher = new Pusher("26bf35143b003081a07b", {
+    cluster: "us2",
+    encrypted: true,
+    authEndpoint: "pusher/auth"
+});
+
+var usersOnline,    // count of users online
+    id,             // id of current user
+    users = [],     // details of all users
+    sessionDesc,    // description of peer connection
+    currentCaller,
+    room,           // current people in a call
+    caller,         // person calling/receiving a call
+    localUserMedia; // audio/video stream beingg transmitted from caller
+
+const channel = pusher.subscribe("presence-videocall");
+
+// add a call button for each user
+function render() {
+    var list = "";
+    users.forEach(user => {
+        list += "<li>" + user +
+            `<input type="button" style="float:right;" value="Call" onclick="callUser('` +
+            user + `')" id="makeCall" /></li>`
     });
+    $("#users").html(list);
+}
 
-    var usersOnline,    // count of users online
-        id,             // id of current user
-        users = [],     // details of all users
-        sessionDesc,    // description of peer connection
-        currentCaller,
-        room,           // current people in a call
-        caller,         // person calling/receiving a call
-        localUserMedia; // audio/video stream beingg transmitted from caller
-    
-    const channel = pusher.subscribe("presence-videocall");
+// Internet Connectivity Establishment (ICE)
+// used to establish RTCPeerConnection
+function GetRTCIceCandidate() {
+    window.RTCIceCandidate =
+        window.RTCIceCandidate ||
+        window.webkitRTCIceCandidate ||
+        window.mozRTCIceCandidate ||
+        window.msRTCIceCandidate;
 
+    return window.RTCIceCandidate;
+}
+
+// connection between local computer and remote computer
+// provides methods to connect, maintain and monitor connection,
+// and close connection
+function GetRTCPeerConnection() {
+    window.RTCPeerConnection =
+        window.RTCPeerConnection ||
+        window.webkitRTCPeerConnection ||
+        window.mozRTCPeerConnection ||
+        window.msRTCPeerConnection;
+
+    return window.RTCPeerConnection;
+}
+
+// describes one end of the connection
+// has a "type" for the offer/answer negotiation process
+function GetRTCSessionDescription() {
+    window.RTCSessionDescription =
+        window.RTCSessionDescription ||
+        window.webkitRTCSessionDescription ||
+        window.mozRTCSessionDescription ||
+        window.msRTCSessionDescription;
+
+    return window.RTCSessionDescription;
+}
+
+// set up caller and add onicecandidate and onaddstream methods
+function prepareCaller() {
+    caller = new window.RTCPeerConnection();
+    // listen for ICE candidates and send them to remote peers
+    caller.onicecandidate = (evt) => {
+        if (!evt.candidate) return;
+        console.log("onicecandidate called");
+        onIceCandidate(caller, evt);
+    };
+    // onaddstream handler to receive remote feed and show in remoteview video element
+    caller.onaddstream = (evt) => {
+        console.log("onaddstream called");
+        if (window.URL) {
+            $("#remoteview").src = window.URL.createObjectURL(evt.stream);
+        } else {
+            $("#remoteview").src = evt.stream;
+        }
+    };
+}
+
+// send the ICE candidate to the remote peer
+function onIceCandidate(peer, evt) {
+    if (evt.candidate) {
+        channel.trigger("client-candidate", {
+            "candidate": evt.candidate,
+            "room": room
+        });
+    }
+}
+
+// get local audio/video feed and show it in selfview video element
+function getCam() {
+    return navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    });
+}
+
+// create and send offer to remote peer on button click
+function callUser(user) {
+    getCam().then(stream => {
+        if (window.URL) {
+            $("#selfview").src = window.URL.createObjectURL(stream);
+        } else {
+            $("#selfview").src = stream;
+        }
+
+        toggleEndCallButton();
+        caller.addStream(stream);
+        localUserMedia = stream;
+        caller.createOffer().then(desc => {
+            caller.setLocalDescription(new RTCSessionDescription(desc));
+            channel.trigger("client-sdp", {
+                sdp: desc,
+                room: user,
+                from: id
+            });
+            room = user;
+        });
+    })
+        .catch(error => console.log("an error occured", error));
+}
+
+function toggleEndCallButton() {
+    if ($("#endCall").css("display") == "block") {
+        $("#endCall").css("display", "none");
+    } else {
+        $("#endCall").css("display", "block");
+    }
+}
+
+function endCall() {
+    room = undefined;
+    caller.close();
+    for (let track of localUserMedia.getTracks()) {
+        track.stop();
+    }
+
+    prepareCaller();
+    toggleEndCallButton();
+}
+
+$(document).ready(function() {
     // render online users after successfully subscribing to
     // presence channel
     channel.bind("pusher:subscription_succeeded", members => {
         usersOnline = members.count;
         id = channel.members.me.id;
         $("#myid").html("My caller id is: " + id);
-        members.forEach(member => {
+        members.each(member => {
             if (member.id != channel.members.me.id) {
                 users.push(member.id);
             }
@@ -50,17 +180,6 @@ $(document).ready(function() {
         render();
     });
 
-    // add a call button for each user
-    function render() {
-        var list = "";
-        users.forEach(user => {
-            list += "<li>" + user +
-                `<input type="button" style="float:right;" value="Call" onclick="callUser('` +
-                user + `')" id="makeCall" /></li>`
-        });
-        $("#users").html(list);
-    }
-
     // get calls for different browsers
     GetRTCPeerConnection();
     GetRTCSessionDescription();
@@ -69,120 +188,12 @@ $(document).ready(function() {
     // prepare caller to use peer connection
     prepareCaller();
 
-    // Internet Connectivity Establishment (ICE)
-    // used to establish RTCPeerConnection
-    function GetRTCIceCandidate() {
-        window.RTCIceCandidate =
-            window.RTCIceCandidate ||
-            window.webkitRTCIceCandidate ||
-            window.mozRTCIceCandidate ||
-            window.msRTCIceCandidate;
-
-        return window.RTCIceCandidate;
-    }
-
-    // connection between local computer and remote computer
-    // provides methods to connect, maintain and monitor connection,
-    // and close connection
-    function GetRTCPeerConnection() {
-        window.RTCPeerConnection =
-            window.RTCPeerConnection ||
-            window.webkitRTCPeerConnection ||
-            window.mozRTCPeerConnection ||
-            window.msRTCPeerConnection;
-        
-        return window.RTCPeerConnection;
-    }
-
-    // describes one end of the connection
-    // has a "type" for the offer/answer negotiation process
-    function GetRTCSessionDescription() {
-        window.RTCSessionDescription =
-            window.RTCSessionDescription ||
-            window.webkitRTCSessionDescription ||
-            window.mozRTCSessionDescription ||
-            window.msRTCSessionDescription;
-
-        return window.RTCSessionDescription;
-    }
-
-    // set up caller and add onicecandidate and onaddstream methods
-    function prepareCaller() {
-        caller = new window.RTCPeerConnection();
-        // listen for ICE candidates and send them to remote peers
-        caller.onicecandidate = (evt) => {
-            if (!evt.candidate) return;
-            console.log("onicecandidate called");
-            onIceCandidate(caller, evt);
-        };
-        // onaddstream handler to receive remote feed and show in remoteview video element
-        caller.onaddstream = (evt) => {
-            console.log("onaddstream called");
-            if (window.URL) {
-                $("#remoteview").src = window.URL.createObjectURL(evt.stream);
-            } else {
-                $("#remoteview").src = evt.stream;
-            }
-        };
-    }
-
-    // send the ICE candidate to the remote peer
-    function onIceCandidate(peer, evt) {
-        if (evt.candidate) {
-            channel.trigger("client-candidate", {
-                "candidate": evt.candidate,
-                "room": room
-            });
-        }
-    }
-
     channel.bind("client-candidate", msg => {
         if (msg.room == room) {
             console.log("candidate received");
             caller.addIceCandidate(new RTCIceCandidate(msg.candidate));
         }
     });
-
-    // get local audio/video feed and show it in selfview video element
-    function getCam() {
-        return navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true
-        });
-    }
-
-    // create and send offer to remote peer on button click
-    function callUser(user) {
-        getCam().then(stream => {
-            if (window.URL) {
-                $("#selfview").src = window.URL.createObjectURL(stream);
-            } else {
-                $("#selfview").src = stream;
-            }
-
-            toggleEndCallButton();
-            caller.addStream(stream);
-            localUserMedia = stream;
-            caller.createOffer().then(desc => {
-                caller.setLocalDescription(new RTCSessionDescription(desc));
-                channel.trigger("client-sdp", {
-                    sdp: desc,
-                    room: user,
-                    from: id
-                });
-                room = user;
-            });
-        })
-        .catch(error => console.log("an error occured", error));
-    }
-
-    function toggleEndCallButton() {
-        if ($("#endCall").css("display") == "block") {
-            $("#endCall").css("display", "none");
-        } else {
-            $("#endCall").css("display", "block");
-        }
-    }
 
     channel.bind("client-sdp", msg => {
         if (msg.room == id) {
@@ -229,15 +240,4 @@ $(document).ready(function() {
             endCall();
         }
     });
-
-    function endCall() {
-        room = undefined;
-        caller.close();
-        for (let track of localUserMedia.getTracks()) {
-            track.stop();
-        }
-
-        prepareCaller();
-        toggleEndCallButton();
-    }
 });
