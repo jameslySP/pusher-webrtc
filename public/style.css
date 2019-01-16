@@ -1,0 +1,45 @@
+li input[type="button"] {
+    margin-left: 10px;
+    background-color: orange;
+    width: 10%;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: transparent 2px solid;
+}
+
+li input[type="button"]:hover {
+    border: gray 2px solid;
+    color: white;
+    transition: all .2s;
+}
+
+#endCall {
+    margin-left: 10px;
+    background-color: rgb(150, 40, 40);
+    width: 10%;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: transparent 2px solid;
+}
+
+#endCall:hover {
+    border: gray 2px solid;
+    color: white;
+    transition: all .2s;
+}
+
+video {
+    /* video border */
+    border: 1px solid #ccc;
+    padding: 2%;
+    margin: 1%;
+    border-radius: 20px;
+    /* tranzitionstransitions applied to the vodeovideo element */
+    -moz-transition: all 1s ease-in-out;
+    -webkit-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}

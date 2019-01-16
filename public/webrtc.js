@@ -20,7 +20,7 @@ function render() {
     var list = "";
     users.forEach(user => {
         list += "<li>" + user +
-            `<input type="button" style="float:right;" value="Call" onclick="callUser('` +
+            `<input type="button" value="Call" onclick="callUser('` +
             user + `')" id="makeCall" /></li>`
     });
     $("#users").html(list);
