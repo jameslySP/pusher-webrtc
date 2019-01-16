@@ -75,11 +75,7 @@ function prepareCaller() {
     // onaddstream handler to receive remote feed and show in remoteview video element
     caller.onaddstream = (evt) => {
         console.log("onaddstream called");
-        if (window.URL) {
-            $("#remoteview").src = window.URL.createObjectURL(evt.stream);
-        } else {
-            $("#remoteview").src = evt.stream;
-        }
+        document.getElementById("remoteview").srcObject = evt.stream;
     };
 }
 
@@ -104,11 +100,7 @@ function getCam() {
 // create and send offer to remote peer on button click
 function callUser(user) {
     getCam().then(stream => {
-        if (window.URL) {
-            $("#selfview").src = window.URL.createObjectURL(stream);
-        } else {
-            $("#selfview").src = stream;
-        }
+        document.getElementById("selfview").srcObject = stream;
 
         toggleEndCallButton();
         caller.addStream(stream);
@@ -205,11 +197,8 @@ $(document).ready(function() {
             getCam().then(stream => {
                 localUserMedia = stream;
                 toggleEndCallButton();
-                if (window.URL) {
-                    $("#selfview").src = window.URL.createObjectURL(stream);
-                } else {
-                    $("#selfview").src = stream;
-                }
+
+                document.getElementById("selfview").srcObject = stream;
 
                 caller.addStream(stream);
                 var sessionDesc = new RTCSessionDescription(msg.sdp);
