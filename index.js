@@ -19,10 +19,12 @@ const pusher = new Pusher({
     encrypted: true
 });
 
+// serve index.html file at root
 app.get('/', (req, res) => {
     return res.sendFile(__dirname + '/public/index.html');
 });
 
+// public folder for multiple files
 app.use(express.static(__dirname + '/public'));
 
 app.listen(3000, () => {
