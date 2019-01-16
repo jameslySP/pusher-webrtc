@@ -125,4 +125,119 @@ $(document).ready(function() {
             }
         };
     }
+
+    // send the ICE candidate to the remote peer
+    function onIceCandidate(peer, evt) {
+        if (evt.candidate) {
+            channel.trigger("client-candidate", {
+                "candidate": evt.candidate,
+                "room": room
+            });
+        }
+    }
+
+    channel.bind("client-candidate", msg => {
+        if (msg.room == room) {
+            console.log("candidate received");
+            caller.addIceCandidate(new RTCIceCandidate(msg.candidate));
+        }
+    });
+
+    // get local audio/video feed and show it in selfview video element
+    function getCam() {
+        return navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+        });
+    }
+
+    // create and send offer to remote peer on button click
+    function callUser(user) {
+        getCam().then(stream => {
+            if (window.URL) {
+                $("#selfview").src = window.URL.createObjectURL(stream);
+            } else {
+                $("#selfview").src = stream;
+            }
+
+            toggleEndCallButton();
+            caller.addStream(stream);
+            localUserMedia = stream;
+            caller.createOffer().then(desc => {
+                caller.setLocalDescription(new RTCSessionDescription(desc));
+                channel.trigger("client-sdp", {
+                    sdp: desc,
+                    room: user,
+                    from: id
+                });
+                room = user;
+            });
+        })
+        .catch(error => console.log("an error occured", error));
+    }
+
+    function toggleEndCallButton() {
+        if ($("#endCall").css("display") == "block") {
+            $("#endCall").css("display", "none");
+        } else {
+            $("#endCall").css("display", "block");
+        }
+    }
+
+    channel.bind("client-sdp", msg => {
+        if (msg.room == id) {
+            var answer = confirm("You have a call from: " + msg.from + " Would you like to answer?");
+            if (!answer) {
+                return channel.trigger("client-reject", { "room": msg.room, "rejected": id });
+            }
+            room = msg.room;
+            getCam().then(stream => {
+                localUserMedia = stream;
+                toggleEndCallButton();
+                if (window.URL) {
+                    $("#selfview").src = window.URL.createObjectURL(stream);
+                } else {
+                    $("#selfview").src = stream;
+                }
+
+                caller.addStream(stream);
+                var sessionDesc = new RTCSessionDescription(msg.sdp);
+                caller.setRemoteDescription(sessionDesc);
+                caller.createAnswer().then(sdp => {
+                    caller.setLocalDescription(new RTCSessionDescription(sdp));
+                    channel.trigger("client-answer", {
+                        "sdp": sdp,
+                        "room": room
+                    });
+                });
+            })
+            .catch(error => console.log("an error has occured", error));
+        }
+    });
+
+    channel.bind("client-answer", answer => {
+        if (answer.room == room) {
+            console.log("Answer received");
+            caller.setRemoteDescription(new RTCSessionDescription(answer.sdp));
+        }
+    });
+
+    channel.bind("client-reject", answer => {
+        if (answer.room == room) {
+            console.log("Call declined");
+            alert("Call to " + answer.rejected + " was politely declined");
+            endCall();
+        }
+    });
+
+    function endCall() {
+        room = undefined;
+        caller.close();
+        for (let track of localUserMedia.getTracks()) {
+            track.stop();
+        }
+
+        prepareCaller();
+        toggleEndCallButton();
+    }
 });
