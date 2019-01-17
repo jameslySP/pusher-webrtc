@@ -5,6 +5,8 @@ const app = express();
 
 const keys = require('./keys');
 
+const port = process.env.PORT || 3000;
+
 // parsing application/json
 app.use(bodyParser.json());
 // parsing application/x-www-form-urlencoded
@@ -27,7 +29,7 @@ app.get('/', (req, res) => {
 // public folder for multiple files
 app.use(express.static(__dirname + '/public'));
 
-app.listen(3000, () => {
+app.listen(port, () => {
     return console.log('Server is up on port 3000');
 });
 
