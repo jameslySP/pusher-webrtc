@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 app.use(express.static(__dirname + '/public'));
 
 app.listen(port, () => {
-    return console.log('Server is up on port 3000');
+    return console.log('Server is up on port ' + port);
 });
 
 // authenitcation for presence channel
