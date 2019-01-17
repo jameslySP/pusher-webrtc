@@ -113,9 +113,10 @@ function callUser(user) {
                 from: id
             });
             room = user;
-        });
+        })
+        .catch(error => console.log("an error occured", error + ", " + error.message));
     })
-        .catch(error => console.log("an error occured", error));
+    .catch(error => console.log("an error occured", error + ", " + error.message));
 }
 
 function toggleEndCallButton() {
@@ -209,7 +210,8 @@ $(document).ready(function() {
                         "sdp": sdp,
                         "room": room
                     });
-                });
+                })
+                .catch(error => console.log("an error occured", error + ", " + error.message));
             })
             .catch(error => console.log("an error has occured", error));
         }

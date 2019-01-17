@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const Pusher = require('pusher');
 const app = express();
 
-const keys = require('./keys');
+const keys = require('./config/keys');
 
 const port = process.env.PORT || 3000;
 
