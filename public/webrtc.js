@@ -89,16 +89,29 @@ function onIceCandidate(peer, evt) {
     }
 }
 
-// get local audio/video feed and show it in selfview video element
+// get local webcam audio/video feed and show it in selfview video element
 function getCam() {
-    return navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-    });
+    // return navigator.mediaDevices.getUserMedia({
+    //     video: true,
+    //     audio: true
+    // });
+    
+    if (navigator.mediaDevices.getDisplayMedia) {
+        // chrome
+        return navigator.mediaDevices.getDisplayMedia({
+            video: true
+        });
+    } else {
+        // firefox
+        return navigator.mediaDevices.getUserMedia({
+            video: { mediaSource: "screen" }
+        });
+    }
 }
 
+
 // create and send offer to remote peer on button click
-function callUser(user) {
+function callUser(user, mediaFunc) {
     getCam().then(stream => {
         document.getElementById("selfview").srcObject = stream;
 
@@ -116,9 +129,14 @@ function callUser(user) {
         })
         .catch(error => console.log("an error occured", error + ", " + error.message));
     })
+<<<<<<< HEAD
+    .catch(error => console.log("an error occured", error.message));
+=======
     .catch(error => console.log("an error occured", error + ", " + error.message));
+>>>>>>> 019ffd0a195271c48e2169a7959977f4b7de5377
 }
 
+// toggle visibility for end call button
 function toggleEndCallButton() {
     if ($("#endCall").css("display") == "block") {
         $("#endCall").css("display", "none");
@@ -181,6 +199,7 @@ $(document).ready(function() {
     // prepare caller to use peer connection
     prepareCaller();
 
+    // event handlers for pusher events
     channel.bind("client-candidate", msg => {
         if (msg.room == room) {
             console.log("candidate received");
@@ -213,7 +232,7 @@ $(document).ready(function() {
                 })
                 .catch(error => console.log("an error occured", error + ", " + error.message));
             })
-            .catch(error => console.log("an error has occured", error));
+            .catch(error => console.log("an error has occured", error.message));
         }
     });
 

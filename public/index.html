@@ -8,10 +8,17 @@
     <body>
         <div id="app">
             <span id="myid"></span>
-            <video id="selfview" autoplay></video>
-            <video id="remoteview" autoplay></video>
+            <div id="othermedia">
+                <h3>Other's Screen</h3>
+                <video id="remoteview" autoplay></video>
+            </div>
+            <div id="mymedia">
+                <h3>Your Screen</h3>
+                <video id="selfview" autoplay></video>
+            </div>
             <button id="endcall" style="display: none" onclick="endCurrentCall()">End Call</button>
             <div id="list">
+                <h2>Users in lobby</h2>
                 <ul id="users">
 
                 </ul>

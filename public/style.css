@@ -1,7 +1,52 @@
+#app {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#myid {
+    font-size: 1.3rem;
+}
+
+#mymedia, #othermedia {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#mymedia {
+    background-color: grey;
+}
+
+#othermedia {
+    background-color: darkgrey;
+}
+
+video {
+    /* video border */
+    border: 1px solid #ccc;
+    padding: 2%;
+    margin: 1%;
+    border-radius: 20px;
+    /* tranzitionstransitions applied to the vodeovideo element */
+    -moz-transition: all 1s ease-in-out;
+    -webkit-transition: all 1s ease-in-out;
+    -o-transition: all 1s ease-in-out;
+    -ms-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+    max-height: 80vh;
+}
+
+#list {
+    font-size: 1.1rem;
+}
+
 li input[type="button"] {
     margin-left: 10px;
     background-color: orange;
-    width: 10%;
     border-radius: 5px;
     font-size: 1.1rem;
     font-weight: 600;
@@ -17,7 +62,6 @@ li input[type="button"]:hover {
 #endCall {
     margin-left: 10px;
     background-color: rgb(150, 40, 40);
-    width: 10%;
     border-radius: 5px;
     font-size: 1.1rem;
     font-weight: 600;
@@ -28,18 +72,4 @@ li input[type="button"]:hover {
     border: gray 2px solid;
     color: white;
     transition: all .2s;
-}
-
-video {
-    /* video border */
-    border: 1px solid #ccc;
-    padding: 2%;
-    margin: 1%;
-    border-radius: 20px;
-    /* tranzitionstransitions applied to the vodeovideo element */
-    -moz-transition: all 1s ease-in-out;
-    -webkit-transition: all 1s ease-in-out;
-    -o-transition: all 1s ease-in-out;
-    -ms-transition: all 1s ease-in-out;
-    transition: all 1s ease-in-out;
 }
