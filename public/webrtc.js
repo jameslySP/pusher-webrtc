@@ -129,11 +129,7 @@ function callUser(user, mediaFunc) {
         })
         .catch(error => console.log("an error occured", error + ", " + error.message));
     })
-<<<<<<< HEAD
     .catch(error => console.log("an error occured", error.message));
-=======
-    .catch(error => console.log("an error occured", error + ", " + error.message));
->>>>>>> 019ffd0a195271c48e2169a7959977f4b7de5377
 }
 
 // toggle visibility for end call button
