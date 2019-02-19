@@ -199,7 +199,19 @@ $(document).ready(function() {
     channel.bind("client-candidate", msg => {
         if (msg.room == room) {
             console.log("candidate received");
-            caller.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            function tryAddIceCandidate(){ 
+                if(caller.currentRemoteDescription){
+                    console.log("addIceCandidate successful!");
+                    caller.addIceCandidate(new RTCIceCandidate(msg.candidate));
+                }else{
+                    setTimeout(function(){
+                       console.log("waiting for remoteDescription to be set...");
+                    }, 1000)
+                }
+                    
+            }
+            tryAddIceCandidate();
+            
         }
     });
 
